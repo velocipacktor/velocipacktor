@@ -1,0 +1,11 @@
+version: '2.4'
+services:
+  trex:
+    image: ghcr.io/velocipacktor/velocipacktor:latest-dev
+    restart: no
+    ports:
+      - 3000:3000
+    volumes:
+      - /opt/trex:/opt/trex:rw
+      - /opt/config:/opt/config:rw
+      - /opt/velocipacktor:/opt/velocipacktor:ro

@@ -118,7 +118,7 @@ export class TrexWrapper {
   //
   // Start t-rex
   async start({
-    tRexPath = `/trex/${trexVersion}`, // Remember __dirname has trailing slash
+    tRexPath = `/opt/trex/${trexVersion}`,
     args = [],
     configFile = 'default.yaml',
     mode = 'astf', // Default to astf mode
@@ -136,7 +136,7 @@ export class TrexWrapper {
     }
 
     // Add config file argument
-    args.push(`--cfg /trex/config/${configFile}`);
+    args.push(`--cfg /opt/config/${configFile}`);
 
     // Start process
     this.child = child_process.spawn(`${tRexPath}/t-rex-64`, args, {

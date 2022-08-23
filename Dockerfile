@@ -1,12 +1,12 @@
 FROM docker.io/node:16-alpine
 
-COPY /src /dist
+COPY /src /opt/velocipacktor
 
 ENV NODE_ENV=development
 
 RUN set -exu \
-  && cd /dist \
+  && cd /opt/velocipacktor \
   && npm install
 
-WORKDIR /dist
+WORKDIR /opt/velocipacktor
 ENTRYPOINT ["node", "--trace-warnings", "main.mjs"]
