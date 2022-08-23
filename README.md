@@ -1,6 +1,8 @@
 # velocipacktor
 Cisco T-Rex Sidecar Process
 
+[![Docker Image CI - Push](https://github.com/velocipacktor/velocipacktor/actions/workflows/docker-image-push-autobuild.yml/badge.svg?branch=main)](https://github.com/velocipacktor/velocipacktor/actions/workflows/docker-image-push-autobuild.yml)
+
 ## What is this?
 ```
 - http/ws api gateway to t-rex
