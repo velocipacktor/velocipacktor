@@ -4,6 +4,7 @@
     "express": "^4.18.1",
     "hjson": "^3.2.2",
     "jsrex": "github:velocipacktor/jsrex",
+    "ps-node": "^0.1.6",
     "tinyws": "^0.1.0"
   },
   "devDependencies": {

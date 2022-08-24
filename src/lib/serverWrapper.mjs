@@ -8,6 +8,8 @@ import { URL } from 'url';
 
 // External
 import { default as clog } from 'ee-log';
+import { default as ps } from 'ps-node';
+
 // eslint-disable-next-line node/no-missing-import
 import { tinyws } from 'tinyws';
 // eslint-disable-next-line node/no-unpublished-import
@@ -28,6 +30,8 @@ export class TrexWrapper {
     this.stdin._read = () => {};
     this.stdout = new Stream.Readable();
     this.stdout._read = () => {};
+
+    this.child = null;
 
     //
     // Handle signals
@@ -68,16 +72,16 @@ export class TrexWrapper {
         configFile: req.body.configFile,
         mode: req.body.mode,
       };
-      const result = await this.start(startParams);
-      res.send(`{ "pid": "${result}" }`);
+      let result = await this.start(startParams);
+      res.send(JSON.stringify(result));
     });
 
     //
     // Stop t-rex
     this.expressApp.post('/v1/trex-process/stop', async (req, res) => {
       res.type('json');
-      await this.stop();
-      res.send(`{}`);
+      let result = await this.stop();
+      res.send(JSON.stringify(result));
     });
 
     //
@@ -108,7 +112,7 @@ export class TrexWrapper {
 
     // Add config file argument
     // --iom 0 = silent
-    args.push(`--iom 1 -i --cfg /opt/trex/config/${configFile}`);
+    args.push(`--iom 2 -i --cfg /opt/trex/config/${configFile}`);
 
     // Start process
     this.child = child_process.spawn(`/opt/trex/${trexVersion}/t-rex-64`, args, {
@@ -127,11 +131,40 @@ export class TrexWrapper {
   }
 
   // Stop t-rex
+  // This call can take quite a while
+  // Adjust timeouts accordingly
   async stop() {
-    if (this.child != null) {
-      this.child.kill('SIGTERM');
-      this.childStatus = 'stopped';
-    }
+    ps.lookup(
+      {
+        command: '_t-rex-64',
+      },
+      (err, pids) => {
+        if (err) {
+          return {
+            error: err,
+          };
+        }
+        if (pids.length === 1) {
+          console.log(pids);
+          process.kill(pids[0].pid, 'SIGTERM');
+        } else if (pids.length > 1) {
+          return {
+            error: 'multiple _t-rex-64 processes found',
+            pids: pids,
+          };
+        } else if (pids.length === 0) {
+          return {
+            error: 'no _t-rex-64 processes found',
+            pids: pids,
+          };
+        } else {
+          return {
+            error: 'unknown error',
+            pids: pids,
+          };
+        }
+      },
+    );
   }
 
   // Get t-rex status
@@ -144,6 +177,7 @@ export class TrexWrapper {
     }
     return {
       pid: null,
+      status: this.childStatus,
     };
   }
 }
