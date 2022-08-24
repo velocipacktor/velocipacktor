@@ -54,12 +54,8 @@ export class TrexWrapper {
     // Query t-rex status (pid, cpu, mem, uptime, etc (for now just pid))
     this.expressApp.get('/v1/trex-process/status', async (req, res) => {
       res.type('json');
-      if (this.child != null) {
-        const status = await this.status();
-        res.send(JSON.stringify(status, null, 2));
-      } else {
-        res.send('{ "pid": "null", "status": "stopped" }');
-      }
+      let status = await this.status();
+      res.send(JSON.stringify(status, null, 2));
     });
 
     //
@@ -109,6 +105,8 @@ export class TrexWrapper {
       default:
         throw new Error('Unknown t-rex server mode: ' + mode);
     }
+    this.mode = mode;
+    this.trexVersion = trexVersion;
 
     // Add config file argument
     // --iom 0 = silent
@@ -121,63 +119,100 @@ export class TrexWrapper {
     });
 
     this.childStatus = 'running';
-    this.mode = mode;
 
     return {
       pid: this.child.pid,
-      stdin: this.child.stdin,
-      stdout: this.child.stdout,
+      status: this.childStatus,
+      mode: this.mode,
     };
   }
 
   // Stop t-rex
   // This call can take quite a while
   // Adjust timeouts accordingly
-  async stop() {
-    ps.lookup(
-      {
-        command: '_t-rex-64',
-      },
-      (err, pids) => {
-        if (err) {
-          return {
-            error: err,
-          };
-        }
-        if (pids.length === 1) {
-          console.log(pids);
-          process.kill(pids[0].pid, 'SIGTERM');
-        } else if (pids.length > 1) {
-          return {
-            error: 'multiple _t-rex-64 processes found',
-            pids: pids,
-          };
-        } else if (pids.length === 0) {
-          return {
-            error: 'no _t-rex-64 processes found',
-            pids: pids,
-          };
-        } else {
-          return {
-            error: 'unknown error',
-            pids: pids,
-          };
-        }
-      },
-    );
+  stop() {
+    return new Promise((resolve) => {
+      ps.lookup(
+        {
+          command: '_t-rex-64',
+        },
+        (err, pids) => {
+          if (err) {
+            return resolve({
+              error: err,
+            });
+          }
+          if (pids.length === 1) {
+            console.log(pids);
+            process.kill(pids[0].pid, 'SIGTERM');
+            this.childStatus = 'stopped';
+            return resolve({
+              error: null,
+              pids: pids,
+              status: this.childStatus,
+              mode: this.mode,
+            })
+          } else if (pids.length > 1) {
+            return resolve({
+              error: 'multiple _t-rex-64 processes found',
+              pids: pids,
+              status: this.childStatus,
+              mode: this.mode,
+            });
+          } else if (pids.length === 0) {
+            return resolve({
+              error: 'no _t-rex-64 processes found',
+              pids: pids,
+              status: this.childStatus,
+              mode: this.mode,
+            });
+          } else {
+            return resolve({
+              error: 'unknown error',
+              pids: pids,
+              status: this.childStatus,
+              mode: this.mode,
+            });
+          }
+        },
+      );
+    });
   }
 
   // Get t-rex status
-  async status() {
-    if (this.child != null) {
-      return {
-        pid: this.child.pid,
-        status: this.childStatus,
-      };
-    }
-    return {
-      pid: null,
-      status: this.childStatus,
-    };
+  status() {
+    return new Promise((resolve) => {
+      ps.lookup(
+        {
+          command: 'bash|_t-rex-64', // Hopefully nobody else is running bash in our container LOL
+        },
+        (err, pids) => {
+          console.log(pids);
+          if (err) {
+            return resolve({
+              error: err,
+              pids: pids,
+              status: this.childStatus,
+              mode: this.mode,
+            });
+          }
+          if (pids.length === 2) {
+            return resolve({
+              error: null,
+              pids: pids,
+              status: this.childStatus,
+              mode: this.mode,
+            });
+          } else {
+            return resolve({
+              error: 'unknown error',
+              pids: pids,
+              status: this.childStatus,
+              mode: this.mode,
+            });
+          }
+        },
+      );
+    });
   }
 }
