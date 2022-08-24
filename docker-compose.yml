@@ -8,9 +8,9 @@ services:
     stdin_open: true
     tty: true
     ports:
-      - '10.15.41.102:3000:3000'
-      - '10.15.41.102:4500:4500'
-      - '10.15.41.102:4501:4501'
+      - 3000:3000
+      - 4500:4500
+      - 4501:4501
     volumes:
       - /opt/trex:/opt/trex:rw
       - /lib/modules:/lib/modules:ro

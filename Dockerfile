@@ -25,7 +25,7 @@ RUN set -exu \
     strace \
     wget \
     make \
-    build-essential 
+    build-essential
 
 COPY /src /opt/velocipacktor
 

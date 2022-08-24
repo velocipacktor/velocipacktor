@@ -16,8 +16,6 @@ import { default as why } from 'why-is-node-running';
 // Our libs
 import { parseBool } from './utils.mjs';
 
-const trexVersion = 'v2.99';
-
 const __filename = new URL('', import.meta.url).pathname;
 const __dirname = new URL('.', import.meta.url).pathname; // Will contain trailing slash
 
@@ -91,7 +89,7 @@ export class TrexWrapper {
   //
   // Start t-rex
   async start({
-    tRexPath = `/opt/trex/${trexVersion}`,
+    trexVersion = 'v2.99',
     args = [],
     configFile = 'default.yaml',
     mode = 'astf', // Default to astf mode
@@ -109,11 +107,12 @@ export class TrexWrapper {
     }
 
     // Add config file argument
-    args.push(`-i --cfg /opt/trex/config/${configFile}`);
+    // --iom 0 = silent
+    args.push(`--iom 1 -i --cfg /opt/trex/config/${configFile}`);
 
     // Start process
-    this.child = child_process.spawn(`${tRexPath}/t-rex-64`, args, {
-      cwd: tRexPath,
+    this.child = child_process.spawn(`/opt/trex/${trexVersion}/t-rex-64`, args, {
+      cwd: `/opt/trex/${trexVersion}/`,
       stdio: 'inherit',
     });
 
