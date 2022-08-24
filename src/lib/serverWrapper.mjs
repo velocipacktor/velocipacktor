@@ -121,6 +121,7 @@ export class TrexWrapper {
     this.childStatus = 'running';
 
     return {
+      error: null,
       pid: this.child.pid,
       status: this.childStatus,
       mode: this.mode,
@@ -136,10 +137,13 @@ export class TrexWrapper {
         {
           command: '_t-rex-64',
         },
-        (err, pids) => {
-          if (err) {
+        (error, pids) => {
+          if (error) {
             return resolve({
-              error: err,
+              error: error,
+              pids: pids,
+              status: this.childStatus,
+              mode: this.mode,
             });
           }
           if (pids.length === 1) {
@@ -186,11 +190,11 @@ export class TrexWrapper {
         {
           command: 'bash|_t-rex-64', // Hopefully nobody else is running bash in our container LOL
         },
-        (err, pids) => {
+        (error, pids) => {
           console.log(pids);
-          if (err) {
+          if (error) {
             return resolve({
-              error: err,
+              error: error,
               pids: pids,
               status: this.childStatus,
               mode: this.mode,
