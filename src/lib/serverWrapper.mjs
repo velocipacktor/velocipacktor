@@ -10,8 +10,6 @@ import { URL } from 'url';
 import { default as clog } from 'ee-log';
 import { default as ps } from 'ps-node';
 
-// eslint-disable-next-line node/no-missing-import
-import { tinyws } from 'tinyws';
 // eslint-disable-next-line node/no-unpublished-import
 import { default as why } from 'why-is-node-running';
 
@@ -110,7 +108,7 @@ export class TrexWrapper {
 
     // Add config file argument
     // --iom 0 = silent
-    args.push(`--iom 2 -i --cfg /opt/trex/config/${configFile}`);
+    args.push(`--iom 0 -i --cfg /opt/trex/config/${configFile}`);
 
     // Start process
     this.child = child_process.spawn(`/opt/trex/${trexVersion}/t-rex-64`, args, {
@@ -155,7 +153,7 @@ export class TrexWrapper {
               pids: pids,
               status: this.childStatus,
               mode: this.mode,
-            })
+            });
           } else if (pids.length > 1) {
             return resolve({
               error: 'multiple _t-rex-64 processes found',

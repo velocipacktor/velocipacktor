@@ -57,15 +57,15 @@ const trexWrapper = new TrexWrapper({
 // Handle signals
 // The trexWrapper class catches sigterm/int for us and cleans itself up
 process.once('SIGTERM', () => {
-  console.error('SIGTERM');
+  trexWrapper.stop();
   expressServer.close();
   setTimeout(() => {
     why(); // For debugging
   }, 10000).unref();
 });
 process.once('SIGINT', () => {
-  console.error('SIGINT');
   expressServer.close();
+  trexWrapper.stop();
   setTimeout(() => {
     why(); // For debugging
   }, 10000).unref();
