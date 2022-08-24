@@ -16,8 +16,6 @@ import { default as why } from 'why-is-node-running';
 // Our libs
 import { parseBool } from './utils.mjs';
 
-const trexVersion = 'v2.99';
-
 const __filename = new URL('', import.meta.url).pathname;
 const __dirname = new URL('.', import.meta.url).pathname; // Will contain trailing slash
 
@@ -83,33 +81,6 @@ export class TrexWrapper {
     });
 
     //
-    // Websocket for t-rex stdin/out
-    this.expressApp.use('/v1/trex-process/ttyws', tinyws(), async (req, res) => {
-      res.type('json');
-      if (req.ws) {
-        const ws = await req.ws();
-
-        ws.on('message', (data) => {
-          this.stdin.push(data.toString() + '\n');
-        });
-
-        this.stdout.on('data', (data) => {
-          ws.send(data.toString());
-        });
-
-        ws.once('close', () => {
-          ws.removeAllListeners();
-          this.stdout.removeAllListeners();
-        });
-
-        process.once('SIGTERM', () => {
-          ws.close(1012, 'sigterm received');
-        });
-      } else {
-        res.send('{ "status": "error", "message": "not a websocket connection" }');
-      }
-    });
-    //
     // End of express endpoint setup
   }
   // End constructor
@@ -118,7 +89,7 @@ export class TrexWrapper {
   //
   // Start t-rex
   async start({
-    tRexPath = `/trex/${trexVersion}`, // Remember __dirname has trailing slash
+    trexVersion = 'v2.99',
     args = [],
     configFile = 'default.yaml',
     mode = 'astf', // Default to astf mode
@@ -129,32 +100,29 @@ export class TrexWrapper {
         args.push('--astf');
         break;
       case 'stl':
-        args.push('--stl');
+        args.push('--stl --no-scapy-server');
         break;
       default:
         throw new Error('Unknown t-rex server mode: ' + mode);
     }
 
     // Add config file argument
-    args.push(`--cfg /trex/config/${configFile}`);
+    // --iom 0 = silent
+    args.push(`--iom 1 -i --cfg /opt/trex/config/${configFile}`);
 
     // Start process
-    this.child = child_process.spawn(`${tRexPath}/t-rex-64`, args, {
-      cwd: tRexPath,
-      stdio: 'pipe',
+    this.child = child_process.spawn(`/opt/trex/${trexVersion}/t-rex-64`, args, {
+      cwd: `/opt/trex/${trexVersion}/`,
+      stdio: 'inherit',
     });
-
-    // Pipe up stdin/out
-    this.child.stdout.pipe(this.stdout);
-    this.child.stdin.pipe(this.stdin);
 
     this.childStatus = 'running';
     this.mode = mode;
 
     return {
       pid: this.child.pid,
-      stdin: this.stdin,
-      stdout: this.stdout,
+      stdin: this.child.stdin,
+      stdout: this.child.stdout,
     };
   }
 

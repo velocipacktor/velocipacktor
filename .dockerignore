@@ -1,0 +1,4 @@
+src/node_modules
+src/.eslintrc.json
+src/.prettierrc
+src/babel.config.json

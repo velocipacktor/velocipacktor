@@ -1,0 +1,19 @@
+version: '2.4'
+services:
+  trex:
+    build: .
+    restart: 'no'
+    network_mode: host
+    privileged: true
+    stdin_open: true
+    tty: true
+    ports:
+      - 3000:3000
+      - 4500:4500
+      - 4501:4501
+    volumes:
+      - /opt/trex:/opt/trex:rw
+      - /lib/modules:/lib/modules:ro
+      - /sys/bus/pci/devices:/sys/bus/pci/devices:rw
+      - /sys/devices/system/node:/sys/devices/system/node:rw
+      - /dev:/dev:rw
